@@ -202,15 +202,15 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
                     "Help", JOptionPane.PLAIN_MESSAGE);
                 break;
 
+            case "Opening move":
+                mOpenedMove = !mOpenedMove;
+                break;
+
+            case "Open remaining":
+                mOpenRemaining = !mOpenRemaining;
+                break;
             case "Exit":         System.exit(0);
 
-            case "Opening move":
-                mOpenRemaining = !mOpenRemaining;
-                break;
-
-            case "Opening rema":
-                mOpenRemaining = !mOpenRemaining;
-                break;
         }
     }
 
