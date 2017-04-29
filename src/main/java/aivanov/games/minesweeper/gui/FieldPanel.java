@@ -1,5 +1,6 @@
 package aivanov.games.minesweeper.gui;
 
+import aivanov.games.minesweeper.model.GameOptions;
 import aivanov.games.minesweeper.model.MinesModel;
 import aivanov.games.minesweeper.resources.Glyph;
 
@@ -26,15 +27,14 @@ class FieldPanel extends JPanel implements MouseListener{
     private final int minesNumber;
 
     // Buttons below main menu and above minefield
-    private final JButton leftButton;
-    private final JButton rightButton;
-    private final JButton centralButton;
-
+    private JButton leftButton;
+    private JButton rightButton;
+    private JButton centralButton;
 
     private final Timer timer;
 
     // Contains pointers to "mine" buttons
-    private final MineTile[][] tiles;
+    private MineTile[][] tiles;
 
     private MinesModel minesLayout;
 
@@ -46,10 +46,13 @@ class FieldPanel extends JPanel implements MouseListener{
     private final int BUTTONWIDTH = 45;
     private final int BUTTONHEIGHT = 30;
 
-    // Auxiliary indexes are intended to select icon for central button
+    // Auxiliary indexes to select icon for central button
     private final int SMILED = 0;
     private final int NEUTRAL = 1;
     private final int SAD = 2;
+
+    private final int CBUTTONWIDTH = 30;
+    private final int CBUTTONHEIGHT = 30;
 
     private boolean isGameEnded = false;
     private boolean gameStarted = false;
@@ -59,12 +62,11 @@ class FieldPanel extends JPanel implements MouseListener{
     private boolean openRemaining;
 
 
-    public FieldPanel(int aRowNumber, int aColNumber, int aMinesNumber, JButton aCentralButton,
-                      boolean aOpenMove, boolean aOpenRemaining) {
+    public FieldPanel(GameOptions options, boolean aOpenMove, boolean aOpenRemaining) {
 
-        rowNumber = aRowNumber;
-        colNumber = aColNumber;
-        minesNumber = aMinesNumber;
+        rowNumber = options.getRowCount();
+        colNumber = options.getColumnCount();
+        minesNumber = options.getMineCount();
         openMove = aOpenMove;
         openRemaining = aOpenRemaining;
 
@@ -75,83 +77,13 @@ class FieldPanel extends JPanel implements MouseListener{
 
         setLayout(new BorderLayout());
 
-        // ---------- Create a toolbar ----------
-        JPanel toolBar = new JPanel();
-
-        GridBagLayout gbl = new GridBagLayout();
-        toolBar.setLayout(gbl);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = GridBagConstraints.RELATIVE;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-
-        gbc.weightx = 1;
-
-        leftButton = new JButton();
-        leftButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-        gbl.setConstraints(leftButton, gbc);
-        leftButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                if (openRemaining && minesLeft == 0) {
-                    checkClosedTiles();
-                }
-            }
-        });
-
-        centralButton = aCentralButton;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbl.setConstraints(centralButton, gbc);
-
-        rightButton = new JButton();
-        rightButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-        gbc.anchor = GridBagConstraints.EAST;
-        gbl.setConstraints(rightButton, gbc);
-
-
-        toolBar.add(leftButton);
-        toolBar.add(centralButton);
-        toolBar.add(rightButton);
-
-        setButtonIcon(minesLeft, false, leftButton);
-        setButtonIcon(NEUTRAL, true, centralButton);
-        setButtonIcon(timeElapsed, false, rightButton);
-
-        toolBar.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(getBackground(),5),
-                BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
-
-        add(toolBar, BorderLayout.NORTH);
-
-        // --------------------------------------------------------------------------------
-
-
-        // ---------- Create tiles panel ----------
-
-        JPanel tilesPanel = new JPanel();
-        tilesPanel.setLayout(new GridLayout(rowNumber, colNumber));
-
-        tiles = new MineTile[rowNumber][colNumber];
-
-        for (int i = 0; i < rowNumber; i++) {
-            for (int j = 0; j < colNumber; j++) {
-                tiles[i][j] = new MineTile(i, j, this);
-                tilesPanel.add(tiles[i][j]);
-            }
-        }
-
-        tilesPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(getBackground(),5),
-                BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
-
-        // --------------------------------------------------------------------------------
-
+        add(new ToolBar(), BorderLayout.NORTH);
 
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(getBackground(),5),
                 BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
 
-        add(tilesPanel, BorderLayout.SOUTH);
+        add(new TilesPanel(), BorderLayout.SOUTH);
 
         timer = new Timer(1000, new ActionListener() {
 
@@ -347,6 +279,115 @@ class FieldPanel extends JPanel implements MouseListener{
 
     }
 
+    private class ToolBar extends JPanel {
+
+        public ToolBar() {
+
+            GridBagLayout gbl = new GridBagLayout();
+            setLayout(gbl);
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = GridBagConstraints.RELATIVE;
+            gbc.fill = GridBagConstraints.NONE;
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
+
+            leftButton = new JButton();
+            leftButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+            gbl.setConstraints(leftButton, gbc);
+            leftButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent event) {
+                    if (openRemaining && minesLeft == 0) {
+                        checkClosedTiles();
+                    }
+                }
+            });
+
+
+            centralButton = new JButton();
+            centralButton.setPreferredSize(new Dimension(CBUTTONWIDTH, CBUTTONHEIGHT));
+            centralButton.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+            centralButton.setActionCommand("New Game");
+//        centralButton.addActionListener(this);
+
+            gbc.anchor = GridBagConstraints.CENTER;
+            gbl.setConstraints(centralButton, gbc);
+
+            rightButton = new JButton();
+            rightButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+            gbc.anchor = GridBagConstraints.EAST;
+            gbl.setConstraints(rightButton, gbc);
+
+
+            add(leftButton);
+            add(centralButton);
+            add(rightButton);
+
+            setButtonIcon(minesLeft, false, leftButton);
+            setButtonIcon(NEUTRAL, true, centralButton);
+            setButtonIcon(timeElapsed, false, rightButton);
+
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(getBackground(),5),
+                    BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
+
+        }
+    }
+
+//    private JPanel createToolBar() {
+//
+//        JPanel toolBar = new JPanel();
+//
+//        GridBagLayout gbl = new GridBagLayout();
+//        toolBar.setLayout(gbl);
+//
+//        GridBagConstraints gbc = new GridBagConstraints();
+//        gbc.gridx = GridBagConstraints.RELATIVE;
+//        gbc.fill = GridBagConstraints.NONE;
+//        gbc.anchor = GridBagConstraints.WEST;
+//        gbc.weightx = 1;
+//
+//        leftButton = new JButton();
+//        leftButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+//        gbl.setConstraints(leftButton, gbc);
+//        leftButton.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent event) {
+//                if (openRemaining && minesLeft == 0) {
+//                    checkClosedTiles();
+//                }
+//            }
+//        });
+//
+//
+//        centralButton = new JButton();
+//        centralButton.setPreferredSize(new Dimension(CBUTTONWIDTH, CBUTTONHEIGHT));
+//        centralButton.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+//        centralButton.setActionCommand("New Game");
+////        centralButton.addActionListener(this);
+//
+//        gbc.anchor = GridBagConstraints.CENTER;
+//        gbl.setConstraints(centralButton, gbc);
+//
+//        rightButton = new JButton();
+//        rightButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+//        gbc.anchor = GridBagConstraints.EAST;
+//        gbl.setConstraints(rightButton, gbc);
+//
+//
+//        toolBar.add(leftButton);
+//        toolBar.add(centralButton);
+//        toolBar.add(rightButton);
+//
+//        setButtonIcon(minesLeft, false, leftButton);
+//        setButtonIcon(NEUTRAL, true, centralButton);
+//        setButtonIcon(timeElapsed, false, rightButton);
+//
+//        toolBar.setBorder(BorderFactory.createCompoundBorder(
+//                BorderFactory.createLineBorder(getBackground(),5),
+//                BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
+//
+//    }
+
     /**
      Class intended for creating tile button
      */
@@ -374,6 +415,27 @@ class FieldPanel extends JPanel implements MouseListener{
             return colIndex;
         }
 
+    }
+
+    private class TilesPanel extends JPanel {
+
+        public TilesPanel() {
+            setLayout(new GridLayout(rowNumber, colNumber));
+
+            tiles = new MineTile[rowNumber][colNumber];
+
+            for (int i = 0; i < rowNumber; i++) {
+                for (int j = 0; j < colNumber; j++) {
+                    tiles[i][j] = new MineTile(i, j, FieldPanel.this);
+                    add(tiles[i][j]);
+                }
+            }
+
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(getBackground(),5),
+                    BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
+
+        }
     }
 
 }

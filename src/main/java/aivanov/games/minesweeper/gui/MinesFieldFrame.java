@@ -1,5 +1,6 @@
 package aivanov.games.minesweeper.gui;
 
+import aivanov.games.minesweeper.model.GameOptions;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.event.*;
@@ -16,17 +17,10 @@ import java.awt.Font;
 
 public class MinesFieldFrame extends JFrame implements ActionListener {
 
-    private int rowCount = 9;
-    private int colCount = 9;
-    private int minesCount = 4;
-    private FieldPanel minesPanel;
-    private final JButton centralButton;
+    private GameOptions options = GameOptions.beginner();
 
     private final CustomLevel customDialog;
     private final Container contentPanel;
-
-    private final int CBUTTONWIDTH = 30;
-    private final int CBUTTONHEIGHT = 30;
 
     private boolean mOpenedMove = false;
     private boolean mOpenRemaining = false;
@@ -36,16 +30,7 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
         //setSize(t.getScreenSize().height/2, t.getScreenSize().width/2);
 
         setTitle("Minesweeper");
-
-        // --------------------------------------------------------------------------------
-
-        // ---------- Create a central button ----------
-        centralButton = new JButton();
-        centralButton.setPreferredSize(new Dimension(CBUTTONWIDTH, CBUTTONHEIGHT));
-        centralButton.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-        centralButton.setActionCommand("New Game");
-        centralButton.addActionListener(this);
-        // --------------------------------------------------------------------------------
+        createMainMenu();
 
         setLocationByPlatform(true);
         setResizable(false);
@@ -156,7 +141,7 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
 
     private void createNewGame() {
         contentPanel.removeAll();
-        minesPanel = new FieldPanel(rowCount, colCount, minesCount, centralButton,
+        FieldPanel minesPanel = new FieldPanel(options,
                 mOpenedMove, mOpenRemaining);
         contentPanel.add(minesPanel, BorderLayout.SOUTH);
         pack();
@@ -169,21 +154,15 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
             case "New Game":     createNewGame();
                 break;
 
-            case "Beginner":     rowCount = 9;
-                colCount = 9;
-                minesCount = 4;
+            case "Beginner":     options = GameOptions.beginner();
                 createNewGame();
                 break;
 
-            case "Intermediate": rowCount = 16;
-                colCount = 16;
-                minesCount = 40;
+            case "Intermediate": options = GameOptions.intermediate();
                 createNewGame();
                 break;
 
-            case "Expert":       rowCount = 40;
-                colCount = 60;
-                minesCount = 256;
+            case "Expert":       options = GameOptions.expert();
                 createNewGame();
                 break;
 
@@ -262,9 +241,7 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
                     } else if (_mines > (_rows * _cols/3)) {
                         JOptionPane.showMessageDialog(owner, "Max value of mines should be less then 1/3 of row*columns");
                     } else {
-                        rowCount = _rows;
-                        colCount = _cols;
-                        minesCount = _mines;
+                        options = GameOptions.custom(_rows, _cols, _mines);
                         setVisible(false);
                     }
                 }
@@ -285,11 +262,10 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
 
         public void showDialog() {
 
-            rowSpinner.setValue(rowCount);
-            colSpinner.setValue(colCount);
-            mineSpinner.setValue(minesCount);
+            rowSpinner.setValue(options.getRowCount());
+            colSpinner.setValue(options.getColumnCount());
+            mineSpinner.setValue(options.getMineCount());
             setVisible(true);
         }
-
     }
 }
