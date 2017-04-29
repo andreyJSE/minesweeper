@@ -101,7 +101,7 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
         JMenu mOptions = newMenu("Options", KeyEvent.VK_O, font);
 
         mOptions.add(newCheckBoxItem("Opening move", KeyEvent.VK_M,
-                "The first move always open a useful series of squares."));
+                "First move always open a useful series of squares."));
 
         mOptions.add(newCheckBoxItem("Open remaining", KeyEvent.VK_R,
                 "When 0 bombs are left unmarked, click the bomb counter 000 to open all remaining"));
@@ -146,7 +146,7 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
     }
 
     private JCheckBoxMenuItem newCheckBoxItem(String name, int keyEvent, String description) {
-        JCheckBoxMenuItem item = new JCheckBoxMenuItem("Open remaining");
+        JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
         item.setActionCommand(name);
         item.addActionListener(this);
         item.setMnemonic(keyEvent);
