@@ -62,13 +62,13 @@ class FieldPanel extends JPanel implements MouseListener{
     private boolean openRemaining;
 
 
-    public FieldPanel(GameOptions options, boolean aOpenMove, boolean aOpenRemaining) {
+    public FieldPanel(GameOptions options) {
 
         rowNumber = options.getRowCount();
         colNumber = options.getColumnCount();
         minesNumber = options.getMineCount();
-        openMove = aOpenMove;
-        openRemaining = aOpenRemaining;
+        openMove = options.isSafeMove();
+        openRemaining = options.isOpenRemaining();
 
         minesLeft = minesNumber;
         numClosedTiles = rowNumber * colNumber;
