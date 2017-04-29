@@ -2,7 +2,6 @@ package aivanov.games.minesweeper.gui;
 
 import aivanov.games.minesweeper.model.GameOptions;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.event.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -15,14 +14,14 @@ import java.awt.Font;
  Class is intended to create a main windows and menu items of the game.
  */
 
-public class MinesFieldFrame extends JFrame implements ActionListener {
+public class MainWindow extends JFrame implements ActionListener {
 
-    private GameOptions options = GameOptions.beginner();
+    private static MainWindow frame;
 
     private final CustomLevel customDialog;
-    private final Container contentPanel;
+    private final Container contentPane;
 
-    private MinesFieldFrame() {
+    private MainWindow() {
         //Toolkit t = Toolkit.getDefaultToolkit();
         //setSize(t.getScreenSize().height/2, t.getScreenSize().width/2);
 
@@ -33,15 +32,20 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
         setResizable(false);
 
         customDialog = new CustomLevel(this);
+        contentPane = getContentPane();
 
-        contentPanel = getContentPane();
         createNewGame();
     }
 
-    public static MinesFieldFrame createMainWindow() {
-        MinesFieldFrame mainWindow = new MinesFieldFrame();
-        mainWindow.createMainMenu();
-        return mainWindow;
+    public static MainWindow createMainWindow() {
+
+        synchronized (MainWindow.class) {
+            if (frame == null) {
+                frame = new MainWindow();
+            }
+        }
+
+        return frame;
     }
 
     private void createMainMenu() {
@@ -82,16 +86,16 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
 
         JMenu mOptions = newMenu("Options", KeyEvent.VK_O, font);
 
-        JCheckBoxMenuItem openingMove = newCheckBoxItem("Opening move", KeyEvent.VK_M,
+        JCheckBoxMenuItem safeMove = newCheckBoxItem("Opening move", KeyEvent.VK_M,
                 "First move always open a useful series of squares.");
 
         JCheckBoxMenuItem openRemaining = newCheckBoxItem("Open remaining", KeyEvent.VK_R,
                 "When 0 bombs are left unmarked, click the bomb counter 000 to open all remaining");
 
-        options.setSafeMove(openingMove.isSelected());
-        options.setOpenRemaining(openRemaining.isSelected());
+        GameOptions.safeMove = safeMove.isSelected();
+        GameOptions.openRemaining = openRemaining.isSelected();
 
-        mOptions.add(openingMove);
+        mOptions.add(safeMove);
         mOptions.add(openRemaining);
 
         return mOptions;
@@ -143,32 +147,32 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
     }
 
     private void createNewGame() {
-        contentPanel.removeAll();
-        FieldPanel minesPanel = new FieldPanel(options);
-        contentPanel.add(minesPanel, BorderLayout.SOUTH);
+        contentPane.removeAll();
+        FieldPanel minesPanel = new FieldPanel();
+        contentPane.add(minesPanel, BorderLayout.SOUTH);
         pack();
     }
 
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent event) {
 
-        switch (e.getActionCommand()) {
+        switch (event.getActionCommand()) {
 
             case "New Game":
                 createNewGame();
                 break;
 
             case "Beginner":
-                options = GameOptions.beginner();
+                GameOptions.beginner();
                 createNewGame();
                 break;
 
             case "Intermediate":
-                options = GameOptions.intermediate();
+                GameOptions.intermediate();
                 createNewGame();
                 break;
 
             case "Expert":
-                options = GameOptions.expert();
+                GameOptions.expert();
                 createNewGame();
                 break;
 
@@ -189,11 +193,11 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
                 break;
 
             case "Opening move":
-                options.setSafeMove(!options.isSafeMove());
+                GameOptions.safeMove = !GameOptions.safeMove;
                 break;
 
             case "Open remaining":
-                options.setOpenRemaining(!options.isOpenRemaining());
+                GameOptions.openRemaining = !GameOptions.openRemaining;
                 break;
 
             case "Exit":
@@ -209,22 +213,16 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
         private final int MAX_ROWS = 100;
         private final int MAX_COLS = 100;
         private final int MAX_MINES = MAX_ROWS * MAX_COLS / 3;
-        private final JFrame owner;
 
-        private JSpinner rowSpinner;
-        private JSpinner colSpinner;
-        private JSpinner mineSpinner;
+        private JSpinner rowSpinner = new JSpinner(new SpinnerNumberModel());
+        private JSpinner colSpinner = new JSpinner(new SpinnerNumberModel());
+        private JSpinner mineSpinner = new JSpinner(new SpinnerNumberModel());
 
         public CustomLevel(final JFrame owner) {
-            super(owner, true);
-            this.owner = owner;
+            super(MainWindow.this, true);
             setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
             JPanel dialogPanel = new JPanel();
             dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.PAGE_AXIS));
-
-            rowSpinner = new JSpinner(new SpinnerNumberModel());
-            colSpinner = new JSpinner(new SpinnerNumberModel());
-            mineSpinner = new JSpinner(new SpinnerNumberModel());
 
             dialogPanel.add(rowSpinner);
             dialogPanel.add(colSpinner);
@@ -250,7 +248,7 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
                     } else if (_mines > (_rows * _cols/3)) {
                         JOptionPane.showMessageDialog(owner, "Max value of mines should be less then 1/3 of row*columns");
                     } else {
-                        options = GameOptions.custom(_rows, _cols, _mines);
+                        GameOptions.custom(_rows, _cols, _mines);
                         setVisible(false);
                     }
                 }
@@ -271,9 +269,9 @@ public class MinesFieldFrame extends JFrame implements ActionListener {
 
         public void showDialog() {
 
-            rowSpinner.setValue(options.getRowCount());
-            colSpinner.setValue(options.getColumnCount());
-            mineSpinner.setValue(options.getMineCount());
+            rowSpinner.setValue(GameOptions.rowCount);
+            colSpinner.setValue(GameOptions.columnCount);
+            mineSpinner.setValue(GameOptions.mineCount);
             setVisible(true);
         }
     }

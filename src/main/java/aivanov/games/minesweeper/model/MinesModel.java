@@ -22,7 +22,7 @@ public class MinesModel {
     }
 
     /**
-     Construct a two-dimension array, there the value "-1" means mine with guarantee
+     Construct a two-dimension array, there the value "-1" stands for mine with guarantee
      that selected cell doesn't contain mine.
 
      @param rowNum Number of rows
@@ -51,7 +51,7 @@ public class MinesModel {
 
 }
 
-// Utility class to generate minefield
+// Auxiliary class to generate minefield
 
 class MapGenerator {
 

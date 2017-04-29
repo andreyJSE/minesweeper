@@ -1,6 +1,6 @@
 package aivanov.games.minesweeper.start;
 
-import aivanov.games.minesweeper.gui.MinesFieldFrame;
+import aivanov.games.minesweeper.gui.MainWindow;
 import javax.swing.*;
 import java.awt.EventQueue;
 
@@ -10,12 +10,10 @@ import java.awt.EventQueue;
 public class GameRunner {
     public static void main(String... args) {
 
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                JFrame frame = MinesFieldFrame.createMainWindow();
+        EventQueue.invokeLater(() -> {
+                JFrame frame = MainWindow.createMainWindow();
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.setVisible(true);
-            }
         });
     }
 }

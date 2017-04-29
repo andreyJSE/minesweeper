@@ -3,66 +3,34 @@ package aivanov.games.minesweeper.model;
 /**
  * Created by AIvanov on 4/29/2017.
  */
-public class GameOptions {
 
-    private final int rowCount;
-    private final int columnCount;
-    private final int mineCount;
-    private boolean safeMove;
-    private boolean openRemaining;
+public final class GameOptions {
 
-    private GameOptions(int rowCount, int columnCount, int mineCount) {
-        this.rowCount = rowCount;
-        this.columnCount = columnCount;
-        this.mineCount = mineCount;
-        this.safeMove = false;
-        this.openRemaining = false;
-    };
+    public static int rowCount = 9;
+    public static int columnCount = 9;
+    public static int mineCount = 4;
+    public static boolean safeMove = false;
+    public static boolean openRemaining = false;
 
-    public int getRowCount() {
-        return rowCount;
+    public static void beginner() {
+        setNewValues(9, 9, 4);
     }
 
-    public int getColumnCount() {
-        return columnCount;
+    public static void intermediate() {
+        setNewValues(16, 16, 40);
     }
 
-    public int getMineCount() {
-        return mineCount;
+    public static void expert() {
+        setNewValues(40, 60 ,256);
     }
 
-    public static GameOptions beginner() {
-        GameOptions game = new GameOptions(9, 9,4);
-        return game;
+    public static void custom(int rows, int columns, int mines) {
+        setNewValues(rows, columns, mines);
     }
 
-    public static GameOptions intermediate() {
-        GameOptions game = new GameOptions(16, 16,40);
-        return game;
-    }
-
-    public static GameOptions expert() {
-        GameOptions game = new GameOptions(40, 60,256);
-        return game;
-    }
-
-    public static GameOptions custom(int rows, int columns, int mines) {
-        GameOptions game = new GameOptions(rows, columns, mines);
-        return game;
-    }
-
-    public boolean isSafeMove() {
-        return safeMove;
-    }
-
-    public boolean isOpenRemaining() {
-        return openRemaining;
-    }
-
-    public void setSafeMove(boolean safeMove) {
-        this.safeMove = safeMove;
-    }
-    public void setOpenRemaining(boolean openRemaining) {
-        this.openRemaining = openRemaining;
+    private static void setNewValues(int rows, int columns, int mines) {
+        rowCount = rows;
+        columnCount = columns;
+        mineCount = mines;
     }
 }

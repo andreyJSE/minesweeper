@@ -62,13 +62,13 @@ class FieldPanel extends JPanel implements MouseListener{
     private boolean openRemaining;
 
 
-    public FieldPanel(GameOptions options) {
+    public FieldPanel() {
 
-        rowNumber = options.getRowCount();
-        colNumber = options.getColumnCount();
-        minesNumber = options.getMineCount();
-        openMove = options.isSafeMove();
-        openRemaining = options.isOpenRemaining();
+        rowNumber = GameOptions.rowCount;
+        colNumber = GameOptions.columnCount;
+        minesNumber = GameOptions.mineCount;
+        openMove = GameOptions.safeMove;
+        openRemaining = GameOptions.openRemaining;
 
         minesLeft = minesNumber;
         numClosedTiles = rowNumber * colNumber;
@@ -143,7 +143,7 @@ class FieldPanel extends JPanel implements MouseListener{
 
     /**
      Check if flagged icons don't contain mines.
-     Used only with the "Open remaining" menu item.
+     The method is used only with the "Open remaining" menu item.
      */
 
     private void checkClosedTiles() {
@@ -178,9 +178,9 @@ class FieldPanel extends JPanel implements MouseListener{
             }
         }
 
-        // Check if right mouse button has been pressed and flag/unflag tile.
-        if(event.getButton() == event.BUTTON3 && !button.isSelected()) {
-            if(button.getIcon() != null) {
+        // Check if the right mouse button has been pressed to flag/unflag tile
+        if (event.getButton() == event.BUTTON3 && !button.isSelected()) {
+            if (button.getIcon() != null) {
                 button.setIcon(null);
                 minesLeft++;
             } else if (minesLeft > 0) {
@@ -188,7 +188,7 @@ class FieldPanel extends JPanel implements MouseListener{
                 minesLeft--;
             }
             setButtonIcon(minesLeft, false, leftButton);
-            // Check if left mouse button has been pressed
+            // Check if the left mouse button has been pressed
         } else if (event.getButton() == event.BUTTON1 && !button.isSelected()) {
             button.setSelected(true);
             int value = minesLayout.getValueAt(button.getRow(), button.getCol());
