@@ -14,6 +14,7 @@ import java.awt.GridBagLayout;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 import javax.swing.ImageIcon;
 
 /**
@@ -179,15 +180,18 @@ class FieldPanel extends JPanel implements MouseListener{
         }
 
         // Check if the right mouse button has been pressed to flag/unflag tile
-        if (event.getButton() == event.BUTTON3 && !button.isSelected()) {
-            if (button.getIcon() != null) {
-                button.setIcon(null);
+        if (event.getButton() == event.BUTTON3 && !button.isOpened()) {
+            if (button.isFlagged()) {
+                button.unsetFlag();
                 minesLeft++;
-            } else if (minesLeft > 0) {
-                button.setIcon(Glyph.FLAG.getGlyph());
-                minesLeft--;
+                updateMineCounterIcon();
+            } else {
+                if (minesLeft > 0) {
+                    button.setFlag();
+                    minesLeft--;
+                    updateMineCounterIcon();
+                }
             }
-            setButtonIcon(minesLeft, false, leftButton);
             // Check if the left mouse button has been pressed
         } else if (event.getButton() == event.BUTTON1 && !button.isSelected()) {
             button.setSelected(true);
@@ -277,6 +281,42 @@ class FieldPanel extends JPanel implements MouseListener{
                     java.awt.Image.SCALE_SMOOTH)));
         }
 
+    }
+
+    private void updateMineCounterIcon() {
+        updateCounterIcon(minesLeft, leftButton);
+    }
+
+    private void updateTimeCounterIcon(int number) {
+        updateCounterIcon(number, rightButton);
+    }
+
+    private void updateCounterIcon(int number, JButton button) {
+
+        int bWidth = button.getPreferredSize().width;
+        int bHeight = button.getPreferredSize().height;
+
+        BufferedImage source = (BufferedImage) Glyph.NUMBERS.getGlyph().getImage();
+        int imageWidth = source.getWidth();
+        int imageHeight = source.getHeight();
+
+        int first = number / 100;
+        int second = (number % 100) / 10;
+        int third = (number % 10);
+
+        BufferedImage result = new BufferedImage(imageWidth * 3/10, imageHeight,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = result.createGraphics();
+
+        g2.drawImage(source.getSubimage((imageWidth / 10) * first, 0,
+                imageWidth / 10, imageHeight), null, 0, 0);
+        g2.drawImage(source.getSubimage((imageWidth / 10) * second, 0,imageWidth / 10,
+                imageHeight), null, imageWidth / 10, 0);
+        g2.drawImage(source.getSubimage((imageWidth / 10) * third, 0, imageWidth / 10,
+                imageHeight), null, imageWidth * 2/ 10, 0);
+
+        button.setIcon(new ImageIcon(result.getScaledInstance(bWidth, bHeight,
+                java.awt.Image.SCALE_SMOOTH)));
     }
 
     private class ToolBar extends JPanel {
@@ -415,6 +455,25 @@ class FieldPanel extends JPanel implements MouseListener{
             return colIndex;
         }
 
+        public void setFlag() {
+            this.setIcon(Glyph.FLAG.getGlyph());
+            System.out.println(getIcon());
+        }
+
+        public void unsetFlag() {
+            if (isFlagged()) {
+                this.setIcon(null);
+            }
+        }
+
+        public boolean isOpened() {
+            return this.isSelected();
+        }
+
+        public boolean isFlagged() {
+            return !isOpened() && Objects.nonNull(this.getIcon());
+        }
+
     }
 
     private class TilesPanel extends JPanel {
@@ -437,5 +496,4 @@ class FieldPanel extends JPanel implements MouseListener{
 
         }
     }
-
 }

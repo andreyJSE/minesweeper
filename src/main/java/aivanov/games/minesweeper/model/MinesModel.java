@@ -18,7 +18,7 @@ public class MinesModel {
      */
 
     public MinesModel(int rowNum, int colNum, int minesNum) {
-        minesLayout = MapGenerator.generateMap(rowNum, colNum, minesNum);
+        minesLayout = MinefieldGenerator.initMinefield(rowNum, colNum, minesNum);
     }
 
     /**
@@ -33,7 +33,7 @@ public class MinesModel {
      */
 
     public MinesModel(int rowNum, int colNum, int minesNum, int selectedRow, int selectedCol) {
-        minesLayout = MapGenerator.generateMapEx(rowNum, colNum, minesNum,
+        minesLayout = MinefieldGenerator.initMinefield(rowNum, colNum, minesNum,
                 selectedRow, selectedCol);
     }
 
@@ -41,140 +41,127 @@ public class MinesModel {
         return minesLayout[rowIndex][colIndex];
     }
 
-    public static void main(String... args) {
-        byte[][] mg = MapGenerator.generateMapEx(9, 9, 4, 3, 3);
+    static class MinefieldGenerator {
 
-        for (byte[] sub : mg) {
-            System.out.println(Arrays.toString(sub));
+        public static byte[][] initMinefield(int rows, int cols, int mineCount) {
+
+            byte[][] minefield = initEmptyMinefield(rows, cols);
+
+            setMinesCells(minefield, mineCount);
+            setNonMineCells(minefield);
+
+            return minefield;
         }
-    }
 
-}
+        public static byte[][] initMinefield(int rows, int cols, int mines, int aRow, int aCol) {
 
-// Auxiliary class to generate minefield
+            byte[][] minefield = initEmptyMinefield(rows, cols);
 
-class MapGenerator {
+            setMinesCells(minefield, mines, aRow, aCol);
+            setNonMineCells(minefield);
 
-    private MapGenerator() {}
+            return minefield;
+        }
 
-    public static byte[][] generateMap(int N, int M, int minesNum) {
+        private static byte[][] initEmptyMinefield(int rows, int cols) {
 
-        // Auxiliary array
-        byte[][] aux = new byte[N + 2][M + 2];
+            byte[][] minefield = new byte[rows][cols];
 
-        // Final array
-        byte[][] ans = new byte[N][M];
-
-        int count = minesNum;
-        int squares = N * M;
-
-        double factor = 0.0;
-
-        // Initialization
-        for (int i = 0; i < N + 2; i++) {
-            for (int j = 0; j < M + 2; j++) {
-                aux[i][j] = 0;
+            for (byte[] a : minefield) {
+                Arrays.fill(a, (byte) 0);
             }
+
+            return minefield;
         }
 
-        // Generate mines
-        for (int i = 1; i < N + 1; i++) {
-            for (int j = 1; j < M + 1; j++) {
-                factor = count * 1.0 / squares;
-                if (Math.random() <= factor) {
-                    aux[i][j] = -1;
-                    count--;
-                }
-                squares--;
-            }
-        }
+        /**
+         * Return a byte array where -1 stands for mine.
+         *
+         * @param rows array row count
+         * @param columns array column count
+         * @param mineCount mine count
+         * @return multidimensional array of bytes
+         */
+        private static void setMinesCells(byte[][] minefield, int mineCount) {
 
-        // Copy values from auxiliary array to final array
-        for (int i = 1; i < N + 1; i++) {
-            for (int j = 1; j < M + 1; j++) {
-                if (aux[i][j] >= 0) {
-                    for (int x = i-1; x <= i+1; x++) {
-                        for (int y = j-1; y <= j+1; y++) {
-                            if (aux[x][y] < 0) {
-                                ans[i-1][j-1] += 1;
-                            }
-                        }
-                    }
-                } else {
-                    ans[i-1][j-1] = -1;
-                }
+            int rows = minefield.length;
+            int columns = minefield[0].length;
 
-            }
-        }
+            int cellCount = rows * columns;
+            double factor = 0.0;
 
-        return ans;
-    }
-
-    public static byte[][] generateMapEx(int N, int M, int minesNum, int aRow, int aCol) {
-
-        // Auxiliary array
-        byte[][] aux = new byte[N + 2][M + 2];
-
-        // Final array
-        byte[][] ans = new byte[N][M];
-        int count = minesNum;
-
-        // Count the number of excluded cells
-        int exclNum = 9;
-        if ((aRow == N-1 || aRow == 0) && (aCol == M-1 || aCol == 0)) {
-            exclNum = 4;
-        } else if (aRow == N-1 || aRow == 0 || aCol == M-1 || aCol == 0) {
-            exclNum = 6;
-        }
-
-        int squares = (N * M) - exclNum;
-        double factor = 0.0;
-
-        // Initialization
-        for (int i = 0; i < N + 2; i++) {
-            for (int j = 0; j < M + 2; j++) {
-                aux[i][j] = 0;
-            }
-        }
-
-        // Generate mines taking into account the selected cell
-        // P.S. Indexes may look a bit confusing because auxiliary array indexes have
-        // been increased on one in comparison with final array
-
-        for (int i = 1; i < N + 1; i++) {
-            for (int j = 1; j < M + 1; j++) {
-                if ((i > aRow + 2 || i < aRow) || (j > aCol + 2 || j < aCol)) {
-                    factor = count * 1.0 / squares;
+            // Generate mines
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < columns; j++) {
+                    factor = mineCount * 1.0 / cellCount;
                     if (Math.random() <= factor) {
-                        aux[i][j] = -1;
-                        count--;
+                        minefield[i][j] = -1;
+                        mineCount--;
                     }
-                    squares--;
+                    cellCount--;
                 }
             }
         }
 
-        // Copy values from auxiliary array to final array
-        for (int i = 1; i < N + 1; i++) {
-            for (int j = 1; j < M + 1; j++) {
-                if (aux[i][j] >= 0) {
-                    for (int x = i-1; x <= i+1; x++) {
-                        for (int y = j-1; y <= j+1; y++) {
-                            if (aux[x][y] < 0) {
-                                ans[i-1][j-1] += 1;
-                            }
+        private static void setMinesCells(byte[][] minefield, int mineCount, int aRow, int aCol) {
+
+            int rows = minefield.length;
+            int columns = minefield[0].length;
+
+            int cellCount = (rows * columns);
+            double factor = 0.0;
+
+            // Exclude selected and adjacent cells
+            if ((aRow == rows-1 || aRow == 0) && (aCol == columns-1 || aCol == 0)) {
+                cellCount -= 4; // Angle cell
+            } else if (aRow == rows-1 || aRow == 0 || aCol == columns-1 || aCol == 0) {
+                cellCount -= 6; // Outside cell
+            } else {
+                cellCount -= 9; // Default cell
+            }
+
+
+            // Generate mines taking into account the selected cell
+
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < columns ; j++) {
+                    if ((i > aRow + 1 || i < aRow - 1) || (j > aCol + 1 || j < aCol - 1)) {
+                        factor = mineCount * 1.0 / cellCount;
+                        if (Math.random() <= factor) {
+                            minefield[i][j] = -1;
+                            mineCount--;
+                        }
+                        cellCount--;
+                    }
+                }
+            }
+        }
+
+        private static void setNonMineCells(byte[][] minegrid) {
+
+            for (int i = 0; i < minegrid.length; i++) {
+                for (int j = 0; j < minegrid[i].length; j++) {
+                    if (minegrid[i][j] == -1) {
+                        setAdjacentCells(minegrid, i, j);
+                    }
+                }
+            }
+        }
+
+        private static void setAdjacentCells(byte[][] minefield, int row, int column) {
+            for (int i = row - 1; i <= row + 1; i++) {
+                if (i >= 0 && i < minefield.length) {
+                    for (int j = column - 1; j <= column + 1; j++) {
+                        if (j >= 0 && j < minefield[i].length && minefield[i][j] >= 0) {
+                            minefield[i][j]++;
                         }
                     }
-                } else {
-                    ans[i-1][j-1] = -1;
                 }
-
             }
         }
-
-        return ans;
     }
 
 }
+
 
 
