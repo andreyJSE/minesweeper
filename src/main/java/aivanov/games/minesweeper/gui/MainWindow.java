@@ -94,7 +94,7 @@ public class MainWindow extends JFrame implements ActionListener {
         setLocationByPlatform(true);
         setResizable(false);
 
-        createMainMenu();
+        setJMenuBar(new MainMenu(this));
         initNewGame();
     }
 
@@ -106,105 +106,111 @@ public class MainWindow extends JFrame implements ActionListener {
         pack();
     }
 
-    private void createMainMenu() {
+    private final class MainMenu extends JMenuBar {
 
-        Font font = new Font("Comics", Font.BOLD, 14);
+        public final String FONT_NAME = "Comics";
+        public final int FONT_STYLE = Font.BOLD;
+        public final int FONT_SIZE = 14;
+        public final ActionListener listener;
 
-        JMenuBar menuBar = new JMenuBar();
+        public MainMenu(ActionListener listener) {
 
-        menuBar.add(createMenuGame(font));
-        menuBar.add(createMenuOptions(font));
-        menuBar.add(createMenuHelp(font));
+            this.listener = listener;
 
-        setJMenuBar(menuBar);
+            Font font = new Font(FONT_NAME, FONT_STYLE, FONT_SIZE);
+
+            this.add(createMenuGame(font));
+            this.add(createMenuOptions(font));
+            this.add(createMenuHelp(font));
+        }
+
+        private JMenu createMenuGame(Font font) {
+
+            JMenu mGame = newMenu("Game", KeyEvent.VK_G, font);
+
+            JMenuItem mNewGame = newMenuItem("New Game", KeyEvent.VK_F2, InputEvent.ALT_MASK);
+            JMenuItem mExit = newMenuItem("Exit", KeyEvent.VK_F4, InputEvent.ALT_MASK);
+
+            ButtonGroup bGroup = new ButtonGroup();
+
+            mGame.add(mNewGame);
+            mGame.addSeparator();
+            mGame.add(newRadioButtonItem("Beginner", true, KeyEvent.VK_B, bGroup));
+            mGame.add(newRadioButtonItem("Intermediate", false, KeyEvent.VK_I, bGroup));
+            mGame.add(newRadioButtonItem("Expert", false, KeyEvent.VK_E, bGroup));
+            mGame.add(newRadioButtonItem("Custom", false, KeyEvent.VK_C, bGroup));
+            mGame.addSeparator();
+            mGame.add(mExit);
+
+            return mGame;
+        }
+
+        private JMenu createMenuOptions(Font font) {
+
+            JMenu mOptions = newMenu("Options", KeyEvent.VK_O, font);
+
+            JCheckBoxMenuItem safeMove = newCheckBoxItem("Opening move", KeyEvent.VK_M,
+                    "First move always open a useful series of squares.");
+
+            JCheckBoxMenuItem openRemaining = newCheckBoxItem("Open remaining", KeyEvent.VK_R,
+                    "When 0 bombs are left unmarked, click the bomb counter 000 to open all remaining");
+
+            GameOptions.safeMove = safeMove.isSelected();
+            GameOptions.openRemaining = openRemaining.isSelected();
+
+            mOptions.add(safeMove);
+            mOptions.add(openRemaining);
+
+            return mOptions;
+        }
+
+        private JMenu createMenuHelp(Font font) {
+            JMenu mHelp = newMenu("Help", KeyEvent.VK_H, font);
+
+            JMenuItem mAbout = newMenuItem("About", KeyEvent.VK_F1, 0);
+            mAbout.setMnemonic(KeyEvent.VK_A);
+
+            mHelp.add(mAbout);
+
+            return mHelp;
+        }
+
+        private JMenu newMenu(String name, int keyEvent, Font font) {
+            JMenu menu = new JMenu(name);
+            menu.setMnemonic(keyEvent);
+            menu.setFont(font);
+            return menu;
+        }
+
+        private JMenuItem newMenuItem(String title, int keyEvent, int inputEvent) {
+            JMenuItem mItem = new JMenuItem(title);
+            mItem.setActionCommand(title);
+            mItem.addActionListener(listener);
+            mItem.setAccelerator(KeyStroke.getKeyStroke(keyEvent, inputEvent));
+            return mItem;
+        }
+
+        private JRadioButtonMenuItem newRadioButtonItem(String title, Boolean selected, int key,
+                                                        ButtonGroup group) {
+            JRadioButtonMenuItem rItem = new JRadioButtonMenuItem(title, selected);
+            rItem.setActionCommand(title);
+            rItem.addActionListener(listener);
+            rItem.setMnemonic(key);
+            group.add(rItem);
+            return rItem;
+        }
+
+        private JCheckBoxMenuItem newCheckBoxItem(String name, int keyEvent, String description) {
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
+            item.setActionCommand(name);
+            item.addActionListener(listener);
+            item.setMnemonic(keyEvent);
+            item.setToolTipText(description);
+            return item;
+        }
     }
 
-    private JMenu createMenuGame(Font font) {
-
-        JMenu mGame = newMenu("Game", KeyEvent.VK_G, font);
-
-        JMenuItem mNewGame = newMenuItem("New Game", KeyEvent.VK_F2, InputEvent.ALT_MASK);
-        JMenuItem mExit = newMenuItem("Exit", KeyEvent.VK_F4, InputEvent.ALT_MASK);
-
-        ButtonGroup bGroup = new ButtonGroup();
-
-        mGame.add(mNewGame);
-        mGame.addSeparator();
-        mGame.add(newRadioButtonItem("Beginner", true, KeyEvent.VK_B, bGroup));
-        mGame.add(newRadioButtonItem("Intermediate", false, KeyEvent.VK_I, bGroup));
-        mGame.add(newRadioButtonItem("Expert", false, KeyEvent.VK_E, bGroup));
-        mGame.add(newRadioButtonItem("Custom", false, KeyEvent.VK_C, bGroup));
-        mGame.addSeparator();
-        mGame.add(mExit);
-
-        return mGame;
-    }
-
-    private JMenu createMenuOptions(Font font) {
-
-        JMenu mOptions = newMenu("Options", KeyEvent.VK_O, font);
-
-        JCheckBoxMenuItem safeMove = newCheckBoxItem("Opening move", KeyEvent.VK_M,
-                "First move always open a useful series of squares.");
-
-        JCheckBoxMenuItem openRemaining = newCheckBoxItem("Open remaining", KeyEvent.VK_R,
-                "When 0 bombs are left unmarked, click the bomb counter 000 to open all remaining");
-
-        GameOptions.safeMove = safeMove.isSelected();
-        GameOptions.openRemaining = openRemaining.isSelected();
-
-        mOptions.add(safeMove);
-        mOptions.add(openRemaining);
-
-        return mOptions;
-    }
-
-    private JMenu createMenuHelp(Font font) {
-        JMenu mHelp = newMenu("Help", KeyEvent.VK_H, font);
-
-        JMenuItem mAbout = newMenuItem("About", KeyEvent.VK_F1, 0);
-        mAbout.setMnemonic(KeyEvent.VK_A);
-
-        mHelp.add(mAbout);
-
-        return mHelp;
-    }
-
-    private JMenu newMenu(String name, int keyEvent, Font font) {
-        JMenu menu = new JMenu(name);
-        menu.setMnemonic(keyEvent);
-        menu.setFont(font);
-        return menu;
-    }
-
-    private JMenuItem newMenuItem(String title, int keyEvent, int inputEvent) {
-        JMenuItem mItem = new JMenuItem(title);
-        mItem.setActionCommand(title);
-        mItem.addActionListener(this);
-        mItem.setAccelerator(KeyStroke.getKeyStroke(keyEvent, inputEvent));
-        return mItem;
-    }
-
-    private JRadioButtonMenuItem newRadioButtonItem(String title, Boolean selected, int key,
-                                                    ButtonGroup group) {
-        JRadioButtonMenuItem rItem = new JRadioButtonMenuItem(title, selected);
-        rItem.setActionCommand(title);
-        rItem.addActionListener(this);
-        rItem.setMnemonic(key);
-        group.add(rItem);
-        return rItem;
-    }
-
-    private JCheckBoxMenuItem newCheckBoxItem(String name, int keyEvent, String description) {
-        JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
-        item.setActionCommand(name);
-        item.addActionListener(this);
-        item.setMnemonic(keyEvent);
-        item.setToolTipText(description);
-        return item;
-    }
-
-    private class CustomLevel extends JDialog {
+    private final class CustomLevel extends JDialog {
 
         private final int DEFAULT_WIDTH = 300;
         private final int DEFAULT_HEIGHT = 200;

@@ -6,13 +6,8 @@ import aivanov.games.minesweeper.resources.Glyph;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import java.awt.*;
 import java.awt.event.*;
-import java.awt.GridLayout;
-import java.awt.GridBagConstraints;
-import java.awt.BorderLayout;
-import java.awt.GridBagLayout;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 import javax.swing.ImageIcon;
@@ -43,17 +38,11 @@ class MineGrid extends JPanel implements MouseListener{
     private int minesLeft;
     private int timeElapsed = 0;
 
-    // Size of left and right buttons
-    private final int BUTTONWIDTH = 45;
-    private final int BUTTONHEIGHT = 30;
 
     // Auxiliary indexes to select icon for central button
     private final int SMILED = 0;
     private final int NEUTRAL = 1;
     private final int SAD = 2;
-
-    private final int CBUTTONWIDTH = 30;
-    private final int CBUTTONHEIGHT = 30;
 
     private boolean isGameEnded = false;
     private boolean gameStarted = false;
@@ -92,7 +81,7 @@ class MineGrid extends JPanel implements MouseListener{
                 if (++timeElapsed > 999) {
                     timer.stop();
                     isGameEnded = true;
-                    setButtonIcon(SAD, true, centralButton);
+                    setButtonIcon(SAD, centralButton);
                     openAllTiles();
                 } else {
                     updateTimeCounterIcon(timeElapsed);
@@ -109,7 +98,7 @@ class MineGrid extends JPanel implements MouseListener{
 
         MineTile button = (MineTile) event.getComponent();
 
-        checkIfGameStarted(button);
+        ensureGameStarted(button);
 
         if (event.getButton() == event.BUTTON3) {
             rightClick(button);
@@ -186,7 +175,7 @@ class MineGrid extends JPanel implements MouseListener{
      @param button Pointer to the button instance
      */
 
-    private void setButtonIcon(int number, boolean isExpression, JButton button) {
+    private void setButtonIcon(int number, JButton button) {
 
         int bWidth = button.getPreferredSize().width;
         int bHeight = button.getPreferredSize().height;
@@ -251,7 +240,7 @@ class MineGrid extends JPanel implements MouseListener{
                     button.setIcon(Glyph.MINERED.getGlyph());
                     isGameEnded = true;
                     timer.stop();
-                    setButtonIcon(SAD, true, centralButton);
+                    setButtonIcon(SAD, centralButton);
                     openAllTiles();
                 } else {
 
@@ -265,7 +254,7 @@ class MineGrid extends JPanel implements MouseListener{
                     if (numClosedTiles <= minesNumber) {
                         isGameEnded = true;
                         timer.stop();
-                        setButtonIcon(SMILED, true, centralButton);
+                        setButtonIcon(SMILED, centralButton);
                         openAllTiles();
                     }
                 }
@@ -291,7 +280,7 @@ class MineGrid extends JPanel implements MouseListener{
         }
     }
 
-    private void checkIfGameStarted(MineTile button) {
+    private void ensureGameStarted(MineTile button) {
         if (!gameStarted) {
             gameStarted = true;
             timer.start();
@@ -304,28 +293,51 @@ class MineGrid extends JPanel implements MouseListener{
 
     private class ToolBar extends JPanel {
 
+        // Size of left and right buttons
+        private final int BUTTONWIDTH = 45;
+        private final int BUTTONHEIGHT = 30;
+
+        private final int CBUTTONWIDTH = 30;
+        private final int CBUTTONHEIGHT = 30;
+
         public ToolBar() {
+
+            createButtons();
+
+            updateMineCounterIcon();
+            setButtonIcon(NEUTRAL, centralButton);
+            updateTimeCounterIcon(timeElapsed);
+
+            setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(getBackground(),5),
+                    BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
+
+        }
+
+        private void createButtons() {
 
             GridBagLayout gbl = new GridBagLayout();
             setLayout(gbl);
-
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.gridx = GridBagConstraints.RELATIVE;
-            gbc.fill = GridBagConstraints.NONE;
-            gbc.anchor = GridBagConstraints.WEST;
             gbc.weightx = 1;
 
-            leftButton = new JButton();
-            leftButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-            gbl.setConstraints(leftButton, gbc);
-            leftButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent event) {
-                    if (openRemaining && minesLeft == 0) {
-                        checkClosedTiles();
-                    }
-                }
-            });
+            createCentralButton();
+            gbl.setConstraints(centralButton, gbc);
 
+            createMineCounterButton();
+            gbc.anchor = GridBagConstraints.WEST;
+            gbl.setConstraints(leftButton, gbc);
+
+            createTimeCounterButton();
+            gbc.anchor = GridBagConstraints.EAST;
+            gbl.setConstraints(rightButton, gbc);
+
+            add(leftButton);
+            add(centralButton);
+            add(rightButton);
+        }
+
+        private void createCentralButton() {
 
             centralButton = new JButton();
             centralButton.setPreferredSize(new Dimension(CBUTTONWIDTH, CBUTTONHEIGHT));
@@ -333,27 +345,23 @@ class MineGrid extends JPanel implements MouseListener{
             centralButton.setActionCommand("New Game");
 //        centralButton.addActionListener(this);
 
-            gbc.anchor = GridBagConstraints.CENTER;
-            gbl.setConstraints(centralButton, gbc);
+        }
 
+        private void createTimeCounterButton() {
             rightButton = new JButton();
             rightButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-            gbc.anchor = GridBagConstraints.EAST;
-            gbl.setConstraints(rightButton, gbc);
+        }
 
-
-            add(leftButton);
-            add(centralButton);
-            add(rightButton);
-
-            updateMineCounterIcon();
-            setButtonIcon(NEUTRAL, true, centralButton);
-            updateTimeCounterIcon(timeElapsed);
-
-            setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(getBackground(),5),
-                    BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
-
+        private void createMineCounterButton() {
+            leftButton = new JButton();
+            leftButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+            leftButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent event) {
+                    if (openRemaining && minesLeft == 0) {
+                        checkClosedTiles();
+                    }
+                }
+            });
         }
     }
 
