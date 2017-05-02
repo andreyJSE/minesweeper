@@ -19,23 +19,6 @@ public class MainWindow extends JFrame implements ActionListener {
     private static MainWindow frame;
 
     private final CustomLevel customDialog;
-    private final Container contentPane;
-
-    private MainWindow() {
-        //Toolkit t = Toolkit.getDefaultToolkit();
-        //setSize(t.getScreenSize().height/2, t.getScreenSize().width/2);
-
-        setTitle("Minesweeper");
-        createMainMenu();
-
-        setLocationByPlatform(true);
-        setResizable(false);
-
-        customDialog = new CustomLevel(this);
-        contentPane = getContentPane();
-
-        createNewGame();
-    }
 
     public static MainWindow createMainWindow() {
 
@@ -46,6 +29,81 @@ public class MainWindow extends JFrame implements ActionListener {
         }
 
         return frame;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+
+        switch (event.getActionCommand()) {
+
+            case "New Game":
+                initNewGame();
+                break;
+
+            case "Beginner":
+                GameOptions.beginner();
+                initNewGame();
+                break;
+
+            case "Intermediate":
+                GameOptions.intermediate();
+                initNewGame();
+                break;
+
+            case "Expert":
+                GameOptions.expert();
+                initNewGame();
+                break;
+
+            case "Custom":
+                customDialog.showDialog();
+                initNewGame();
+                break;
+
+            case "About":        JOptionPane.showMessageDialog(this, "The purpose of this game is to open all\n" +
+                            "the cells which do not contain a bomb.\n" +
+                            "You lose if you open a bomb cell.\n\n\n" +
+                            "P.S. Nice to have the following:\n" +
+                            "1. Keep records\n" +
+                            "2. Ability to save the game\n" +
+                            "3. Automatic solver\n" +
+                            "4. Checking for 9 cells\n",
+                    "Help", JOptionPane.PLAIN_MESSAGE);
+                break;
+
+            case "Opening move":
+                GameOptions.safeMove = !GameOptions.safeMove;
+                break;
+
+            case "Open remaining":
+                GameOptions.openRemaining = !GameOptions.openRemaining;
+                break;
+
+            case "Exit":
+                System.exit(0);
+
+        }
+    }
+
+    private MainWindow() {
+        //Toolkit t = Toolkit.getDefaultToolkit();
+        //setSize(t.getScreenSize().height/2, t.getScreenSize().width/2);
+
+        customDialog = new CustomLevel(this);
+
+        setTitle("Minesweeper");
+        setLocationByPlatform(true);
+        setResizable(false);
+
+        createMainMenu();
+        initNewGame();
+    }
+
+    private void initNewGame() {
+        Container contentPane = getContentPane();
+
+        contentPane.removeAll();
+        contentPane.add(new MineGrid(), BorderLayout.SOUTH);
+        pack();
     }
 
     private void createMainMenu() {
@@ -146,66 +204,6 @@ public class MainWindow extends JFrame implements ActionListener {
         return item;
     }
 
-    private void createNewGame() {
-        contentPane.removeAll();
-        FieldPanel minesPanel = new FieldPanel();
-        contentPane.add(minesPanel, BorderLayout.SOUTH);
-        pack();
-    }
-
-    public void actionPerformed(ActionEvent event) {
-
-        switch (event.getActionCommand()) {
-
-            case "New Game":
-                createNewGame();
-                break;
-
-            case "Beginner":
-                GameOptions.beginner();
-                createNewGame();
-                break;
-
-            case "Intermediate":
-                GameOptions.intermediate();
-                createNewGame();
-                break;
-
-            case "Expert":
-                GameOptions.expert();
-                createNewGame();
-                break;
-
-            case "Custom":
-                customDialog.showDialog();
-                createNewGame();
-                break;
-
-            case "About":        JOptionPane.showMessageDialog(this, "The purpose of this game is to open all\n" +
-                            "the cells which do not contain a bomb.\n" +
-                            "You lose if you open a bomb cell.\n\n\n" +
-                            "P.S. Nice to have the following:\n" +
-                            "1. Keep records\n" +
-                            "2. Ability to save the game\n" +
-                            "3. Automatic solver\n" +
-                            "4. Checking for 9 cells\n",
-                    "Help", JOptionPane.PLAIN_MESSAGE);
-                break;
-
-            case "Opening move":
-                GameOptions.safeMove = !GameOptions.safeMove;
-                break;
-
-            case "Open remaining":
-                GameOptions.openRemaining = !GameOptions.openRemaining;
-                break;
-
-            case "Exit":
-                System.exit(0);
-
-        }
-    }
-
     private class CustomLevel extends JDialog {
 
         private final int DEFAULT_WIDTH = 300;
@@ -220,7 +218,10 @@ public class MainWindow extends JFrame implements ActionListener {
 
         public CustomLevel(final JFrame owner) {
             super(MainWindow.this, true);
+
+            setTitle("Set custom values");
             setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+
             JPanel dialogPanel = new JPanel();
             dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.PAGE_AXIS));
 
@@ -231,11 +232,6 @@ public class MainWindow extends JFrame implements ActionListener {
             JPanel dialogButtons = new JPanel();
 
             JButton ok = new JButton("OK");
-            JButton cancel = new JButton("Cancel");
-
-            dialogButtons.add(ok);
-            dialogButtons.add(cancel);
-
             ok.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent event) {
                     int _rows = (Integer) rowSpinner.getValue();
@@ -254,15 +250,19 @@ public class MainWindow extends JFrame implements ActionListener {
                 }
             });
 
+            JButton cancel = new JButton("Cancel");
             cancel.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent event) {
                     setVisible(false);
                 }
             });
 
+            dialogButtons.add(ok);
+            dialogButtons.add(cancel);
+
             add(dialogPanel, BorderLayout.NORTH);
             add(dialogButtons, BorderLayout.SOUTH);
-            setTitle("Set custom values");
+
             pack();
 
         }

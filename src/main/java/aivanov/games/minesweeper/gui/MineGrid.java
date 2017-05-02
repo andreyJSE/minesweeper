@@ -21,7 +21,7 @@ import javax.swing.ImageIcon;
  This class intended to create GUI for minefield and processing button events.
  */
 
-class FieldPanel extends JPanel implements MouseListener{
+class MineGrid extends JPanel implements MouseListener{
 
     private final int rowNumber;
     private final int colNumber;
@@ -63,7 +63,7 @@ class FieldPanel extends JPanel implements MouseListener{
     private boolean openRemaining;
 
 
-    public FieldPanel() {
+    public MineGrid() {
 
         rowNumber = GameOptions.rowCount;
         colNumber = GameOptions.columnCount;
@@ -95,12 +95,32 @@ class FieldPanel extends JPanel implements MouseListener{
                     setButtonIcon(SAD, true, centralButton);
                     openAllTiles();
                 } else {
-                    setButtonIcon(timeElapsed, false, rightButton);
+                    updateTimeCounterIcon(timeElapsed);
                 }
             }
         });
     }
 
+    public void mouseClicked(MouseEvent me) {}
+
+    public void mousePressed(MouseEvent me) {}
+
+    public void mouseReleased(MouseEvent event) {
+
+        MineTile button = (MineTile) event.getComponent();
+
+        checkIfGameStarted(button);
+
+        if (event.getButton() == event.BUTTON3) {
+            rightClick(button);
+        } else if (event.getButton() == event.BUTTON1) {
+            leftClick(button);
+        }
+    }
+
+    public void mouseEntered(MouseEvent me) {}
+
+    public void mouseExited(MouseEvent me) {}
 
     /**
      Open all tiles that are next to the given tile.
@@ -121,7 +141,6 @@ class FieldPanel extends JPanel implements MouseListener{
                 }
             }
         }
-
     }
 
     /**
@@ -160,77 +179,6 @@ class FieldPanel extends JPanel implements MouseListener{
         }
     }
 
-    public void mouseClicked(MouseEvent me) {}
-
-    public void mousePressed(MouseEvent me) {}
-
-    public void mouseReleased(MouseEvent event) {
-
-        MineTile button = (MineTile) event.getComponent();
-
-        //    Start timer and create a new game model in case if the "Open move" menu item selected.
-
-        if (!gameStarted) {
-            gameStarted = true;
-            timer.start();
-            if (openMove) {
-                minesLayout = new MinesModel(rowNumber, colNumber, minesNumber,
-                        button.getRow(), button.getCol());
-            }
-        }
-
-        // Check if the right mouse button has been pressed to flag/unflag tile
-        if (event.getButton() == event.BUTTON3 && !button.isOpened()) {
-            if (button.isFlagged()) {
-                button.unsetFlag();
-                minesLeft++;
-                updateMineCounterIcon();
-            } else {
-                if (minesLeft > 0) {
-                    button.setFlag();
-                    minesLeft--;
-                    updateMineCounterIcon();
-                }
-            }
-            // Check if the left mouse button has been pressed
-        } else if (event.getButton() == event.BUTTON1 && !button.isSelected()) {
-            button.setSelected(true);
-            int value = minesLayout.getValueAt(button.getRow(), button.getCol());
-
-            if (!isGameEnded) {
-                if (value == -1) {
-                    button.setIcon(Glyph.MINERED.getGlyph());
-                    isGameEnded = true;
-                    timer.stop();
-                    setButtonIcon(SAD, true, centralButton);
-                    openAllTiles();
-                } else {
-
-                    button.setIcon(Glyph.getByValue(value));
-                    setButtonIcon(minesLeft, false, leftButton);
-                    --numClosedTiles;
-
-                    if (value == 0) {
-                        openAdjacentTiles(button.getRow(), button.getCol());
-                    }
-
-                    if (numClosedTiles <= minesNumber) {
-                        isGameEnded = true;
-                        timer.stop();
-                        setButtonIcon(SMILED, true, centralButton);
-                        openAllTiles();
-                    }
-                }
-            } else {
-                button.setIcon(Glyph.getByValue(value));
-            }
-        }
-    }
-
-    public void mouseEntered(MouseEvent me) {}
-
-    public void mouseExited(MouseEvent me) {}
-
     /**
      Auxiliary method to draw picture on buttons below menu.
      @param number The index of subimage
@@ -243,44 +191,17 @@ class FieldPanel extends JPanel implements MouseListener{
         int bWidth = button.getPreferredSize().width;
         int bHeight = button.getPreferredSize().height;
 
+        BufferedImage source = (BufferedImage) Glyph.EXPRESSIONS.getGlyph().getImage();
+        int imageWidth = source.getWidth();
+        int imageHeight = source.getHeight();
+        BufferedImage result = new BufferedImage(imageWidth * 1/3, imageHeight,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = result.createGraphics();
+        g2.drawImage(source.getSubimage((imageWidth / 3) * number, 0,
+                imageWidth / 3, imageHeight), null, 0, 0);
 
-        if (isExpression) {
-            BufferedImage source = (BufferedImage) Glyph.EXPRESSIONS.getGlyph().getImage();
-            int imageWidth = source.getWidth();
-            int imageHeight = source.getHeight();
-            BufferedImage result = new BufferedImage(imageWidth * 1/3, imageHeight,
-                    BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = result.createGraphics();
-            g2.drawImage(source.getSubimage((imageWidth / 3) * number, 0,
-                    imageWidth / 3, imageHeight), null, 0, 0);
-
-            button.setIcon(new ImageIcon(result.getScaledInstance(bWidth,
-                    bHeight, java.awt.Image.SCALE_SMOOTH)));
-        } else {
-
-            BufferedImage source = (BufferedImage) Glyph.NUMBERS.getGlyph().getImage();
-            int imageWidth = source.getWidth();
-            int imageHeight = source.getHeight();
-
-            int first = number / 100;
-            int second = (number % 100) / 10;
-            int third = (number % 10);
-
-            BufferedImage result = new BufferedImage(imageWidth * 3/10, imageHeight,
-                    BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = result.createGraphics();
-
-            g2.drawImage(source.getSubimage((imageWidth / 10) * first, 0,
-                    imageWidth / 10, imageHeight), null, 0, 0);
-            g2.drawImage(source.getSubimage((imageWidth / 10) * second, 0,imageWidth / 10,
-                    imageHeight), null, imageWidth / 10, 0);
-            g2.drawImage(source.getSubimage((imageWidth / 10) * third, 0, imageWidth / 10,
-                    imageHeight), null, imageWidth * 2/ 10, 0);
-
-            button.setIcon(new ImageIcon(result.getScaledInstance(bWidth, bHeight,
-                    java.awt.Image.SCALE_SMOOTH)));
-        }
-
+        button.setIcon(new ImageIcon(result.getScaledInstance(bWidth,
+                bHeight, java.awt.Image.SCALE_SMOOTH)));
     }
 
     private void updateMineCounterIcon() {
@@ -317,6 +238,68 @@ class FieldPanel extends JPanel implements MouseListener{
 
         button.setIcon(new ImageIcon(result.getScaledInstance(bWidth, bHeight,
                 java.awt.Image.SCALE_SMOOTH)));
+    }
+
+    private void leftClick(MineTile button) {
+
+        if (!button.isOpened()) {
+            button.setSelected(true);
+            int value = minesLayout.getValueAt(button.getRow(), button.getCol());
+
+            if (!isGameEnded) {
+                if (value == -1) {
+                    button.setIcon(Glyph.MINERED.getGlyph());
+                    isGameEnded = true;
+                    timer.stop();
+                    setButtonIcon(SAD, true, centralButton);
+                    openAllTiles();
+                } else {
+
+                    button.setIcon(Glyph.getByValue(value));
+                    --numClosedTiles;
+
+                    if (value == 0) {
+                        openAdjacentTiles(button.getRow(), button.getCol());
+                    }
+
+                    if (numClosedTiles <= minesNumber) {
+                        isGameEnded = true;
+                        timer.stop();
+                        setButtonIcon(SMILED, true, centralButton);
+                        openAllTiles();
+                    }
+                }
+            } else {
+                button.setIcon(Glyph.getByValue(value));
+            }
+        }
+    }
+
+    private void rightClick(MineTile button) {
+        if (!button.isOpened()) {
+            if (button.isFlagged()) {
+                button.unsetFlag();
+                minesLeft++;
+                updateMineCounterIcon();
+            } else {
+                if (minesLeft > 0) {
+                    button.setFlag();
+                    minesLeft--;
+                    updateMineCounterIcon();
+                }
+            }
+        }
+    }
+
+    private void checkIfGameStarted(MineTile button) {
+        if (!gameStarted) {
+            gameStarted = true;
+            timer.start();
+            if (openMove) {
+                minesLayout = new MinesModel(rowNumber, colNumber, minesNumber,
+                        button.getRow(), button.getCol());
+            }
+        }
     }
 
     private class ToolBar extends JPanel {
@@ -363,9 +346,9 @@ class FieldPanel extends JPanel implements MouseListener{
             add(centralButton);
             add(rightButton);
 
-            setButtonIcon(minesLeft, false, leftButton);
+            updateMineCounterIcon();
             setButtonIcon(NEUTRAL, true, centralButton);
-            setButtonIcon(timeElapsed, false, rightButton);
+            updateTimeCounterIcon(timeElapsed);
 
             setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(getBackground(),5),
@@ -373,60 +356,6 @@ class FieldPanel extends JPanel implements MouseListener{
 
         }
     }
-
-//    private JPanel createToolBar() {
-//
-//        JPanel toolBar = new JPanel();
-//
-//        GridBagLayout gbl = new GridBagLayout();
-//        toolBar.setLayout(gbl);
-//
-//        GridBagConstraints gbc = new GridBagConstraints();
-//        gbc.gridx = GridBagConstraints.RELATIVE;
-//        gbc.fill = GridBagConstraints.NONE;
-//        gbc.anchor = GridBagConstraints.WEST;
-//        gbc.weightx = 1;
-//
-//        leftButton = new JButton();
-//        leftButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-//        gbl.setConstraints(leftButton, gbc);
-//        leftButton.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent event) {
-//                if (openRemaining && minesLeft == 0) {
-//                    checkClosedTiles();
-//                }
-//            }
-//        });
-//
-//
-//        centralButton = new JButton();
-//        centralButton.setPreferredSize(new Dimension(CBUTTONWIDTH, CBUTTONHEIGHT));
-//        centralButton.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-//        centralButton.setActionCommand("New Game");
-////        centralButton.addActionListener(this);
-//
-//        gbc.anchor = GridBagConstraints.CENTER;
-//        gbl.setConstraints(centralButton, gbc);
-//
-//        rightButton = new JButton();
-//        rightButton.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-//        gbc.anchor = GridBagConstraints.EAST;
-//        gbl.setConstraints(rightButton, gbc);
-//
-//
-//        toolBar.add(leftButton);
-//        toolBar.add(centralButton);
-//        toolBar.add(rightButton);
-//
-//        setButtonIcon(minesLeft, false, leftButton);
-//        setButtonIcon(NEUTRAL, true, centralButton);
-//        setButtonIcon(timeElapsed, false, rightButton);
-//
-//        toolBar.setBorder(BorderFactory.createCompoundBorder(
-//                BorderFactory.createLineBorder(getBackground(),5),
-//                BorderFactory.createEtchedBorder(EtchedBorder.RAISED)));
-//
-//    }
 
     /**
      Class intended for creating tile button
@@ -456,8 +385,9 @@ class FieldPanel extends JPanel implements MouseListener{
         }
 
         public void setFlag() {
-            this.setIcon(Glyph.FLAG.getGlyph());
-            System.out.println(getIcon());
+            if (!isOpened()) {
+                this.setIcon(Glyph.FLAG.getGlyph());
+            }
         }
 
         public void unsetFlag() {
@@ -485,7 +415,7 @@ class FieldPanel extends JPanel implements MouseListener{
 
             for (int i = 0; i < rowNumber; i++) {
                 for (int j = 0; j < colNumber; j++) {
-                    tiles[i][j] = new MineTile(i, j, FieldPanel.this);
+                    tiles[i][j] = new MineTile(i, j, MineGrid.this);
                     add(tiles[i][j]);
                 }
             }
