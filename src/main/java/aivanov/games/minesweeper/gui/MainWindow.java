@@ -1,13 +1,14 @@
 package aivanov.games.minesweeper.gui;
 
 import aivanov.games.minesweeper.model.GameOptions;
+import javafx.scene.control.ToolBar;
+
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
 import java.awt.event.*;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.KeyEvent;
-import java.awt.Container;
-import java.awt.Font;
 
 
 /**
@@ -95,6 +96,7 @@ public class MainWindow extends JFrame implements ActionListener {
         setResizable(false);
 
         setJMenuBar(new MainMenu(this));
+
         initNewGame();
     }
 
@@ -102,6 +104,16 @@ public class MainWindow extends JFrame implements ActionListener {
         Container contentPane = getContentPane();
 
         contentPane.removeAll();
+
+        JToolBar toolbar = new JToolBar();
+        toolbar.setLayout(new FlowLayout());
+        toolbar.setFloatable(false);;
+        toolbar.add(new JButton("OK"));
+        toolbar.add(new JButton("Cancel"));
+        toolbar.add(new JButton("Cancel2"));
+        add(toolbar);
+
+
         contentPane.add(new MineGrid(), BorderLayout.SOUTH);
         pack();
     }
@@ -212,14 +224,80 @@ public class MainWindow extends JFrame implements ActionListener {
 
     private final class CustomLevel extends JDialog {
 
+//        private final int DEFAULT_WIDTH = 300;
+//        private final int DEFAULT_HEIGHT = 200;
+//        private final int MAX_ROWS = 100;
+//        private final int MAX_COLS = 100;
+//        private final int MAX_MINES = MAX_ROWS * MAX_COLS / 3;
+//
+//        private JSpinner rowSpinner = new JSpinner(new SpinnerNumberModel());
+//        private JSpinner colSpinner = new JSpinner(new SpinnerNumberModel());
+//        private JSpinner mineSpinner = new JSpinner(new SpinnerNumberModel());
+//
+//        public CustomLevel(final JFrame owner) {
+//            super(MainWindow.this, true);
+//
+//            setTitle("Set custom values");
+//            setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+//
+//            JPanel dialogPanel = new JPanel();
+//            dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.PAGE_AXIS));
+//
+//            dialogPanel.add(rowSpinner);
+//            dialogPanel.add(colSpinner);
+//            dialogPanel.add(mineSpinner);
+//
+//            rowSpinner.setBorder(new TitledBorder("Test"));
+//
+//            JPanel dialogButtons = new JPanel();
+//
+//            JButton ok = new JButton("OK");
+//            ok.addActionListener(new ActionListener() {
+//                public void actionPerformed(ActionEvent event) {
+//                    int _rows = (Integer) rowSpinner.getValue();
+//                    int _cols = (Integer) colSpinner.getValue();
+//                    int _mines = (Integer) mineSpinner.getValue();
+//
+//                    if (_rows > MAX_ROWS || _cols > MAX_COLS || _mines > MAX_MINES) {
+//                        JOptionPane.showMessageDialog(owner, "Please select values from the following ranges:\nrows 1 - " + MAX_ROWS +
+//                                "\ncolumns 1 - " + MAX_COLS + "\nmines 1 - " + MAX_MINES);
+//                    } else if (_mines > (_rows * _cols/3)) {
+//                        JOptionPane.showMessageDialog(owner, "Max value of mines should be less then 1/3 of row*columns");
+//                    } else {
+//                        GameOptions.custom(_rows, _cols, _mines);
+//                        setVisible(false);
+//                    }
+//                }
+//            });
+//
+//            JButton cancel = new JButton("Cancel");
+//            cancel.addActionListener(new ActionListener() {
+//                public void actionPerformed(ActionEvent event) {
+//                    setVisible(false);
+//                }
+//            });
+//
+//            dialogButtons.add(ok);
+//            dialogButtons.add(cancel);
+//
+//            add(dialogPanel, BorderLayout.NORTH);
+//            add(dialogButtons, BorderLayout.SOUTH);
+//
+//            pack();
+//
+//        }
+
+
         private final int DEFAULT_WIDTH = 300;
         private final int DEFAULT_HEIGHT = 200;
         private final int MAX_ROWS = 100;
+        private final int MIN_ROWS = 0;
         private final int MAX_COLS = 100;
+        private final int MIN_COLS = 0;
         private final int MAX_MINES = MAX_ROWS * MAX_COLS / 3;
 
-        private JSpinner rowSpinner = new JSpinner(new SpinnerNumberModel());
-        private JSpinner colSpinner = new JSpinner(new SpinnerNumberModel());
+        private JSlider rowSpinner = new JSlider(MIN_ROWS, MAX_ROWS, MAX_ROWS - MIN_ROWS / 2);
+        private JSlider colSpinner = new JSlider(MIN_COLS, MAX_COLS, MAX_COLS - MIN_COLS / 2);
         private JSpinner mineSpinner = new JSpinner(new SpinnerNumberModel());
 
         public CustomLevel(final JFrame owner) {
@@ -231,9 +309,18 @@ public class MainWindow extends JFrame implements ActionListener {
             JPanel dialogPanel = new JPanel();
             dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.PAGE_AXIS));
 
+            rowSpinner.setMajorTickSpacing(20);
+            rowSpinner.setMinorTickSpacing(5);
+            rowSpinner.setPaintLabels(true);
+            rowSpinner.setPaintTicks(true);
+
             dialogPanel.add(rowSpinner);
             dialogPanel.add(colSpinner);
             dialogPanel.add(mineSpinner);
+
+            rowSpinner.setBorder(new TitledBorder("Row counter"));
+            colSpinner.setBorder(new TitledBorder("Column counter"));
+            mineSpinner.setBorder(new TitledBorder("Mine counter"));
 
             JPanel dialogButtons = new JPanel();
 

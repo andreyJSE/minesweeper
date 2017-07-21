@@ -22,11 +22,6 @@ class MineGrid extends JPanel implements MouseListener{
     private final int colNumber;
     private final int minesNumber;
 
-    // Buttons below main menu and above minefield
-    private JButton leftButton;
-    private JButton rightButton;
-    private JButton centralButton;
-
     private final Timer timer;
 
     // Contains pointers to "mine" buttons
@@ -37,7 +32,6 @@ class MineGrid extends JPanel implements MouseListener{
     private int numClosedTiles;
     private int minesLeft;
     private int timeElapsed = 0;
-
 
     // Auxiliary indexes to select icon for central button
     private final int SMILED = 0;
@@ -51,6 +45,7 @@ class MineGrid extends JPanel implements MouseListener{
     private boolean openMove;
     private boolean openRemaining;
 
+    private ToolBar toolbar;
 
     public MineGrid() {
 
@@ -65,9 +60,11 @@ class MineGrid extends JPanel implements MouseListener{
 
         minesLayout = new MinesModel(rowNumber, colNumber, minesNumber);
 
+        toolbar = new ToolBar();
+
         setLayout(new BorderLayout());
 
-        add(new ToolBar(), BorderLayout.NORTH);
+        add(toolbar, BorderLayout.NORTH);
 
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(getBackground(),5),
@@ -81,10 +78,10 @@ class MineGrid extends JPanel implements MouseListener{
                 if (++timeElapsed > 999) {
                     timer.stop();
                     isGameEnded = true;
-                    setButtonIcon(SAD, centralButton);
+                    toolbar.setButtonIcon(SAD);
                     openAllTiles();
                 } else {
-                    updateTimeCounterIcon(timeElapsed);
+                    toolbar.updateTimeCounterIcon(timeElapsed);
                 }
             }
         });
@@ -100,7 +97,10 @@ class MineGrid extends JPanel implements MouseListener{
 
         ensureGameStarted(button);
 
-        if (event.getButton() == event.BUTTON3) {
+
+
+//        if (event.getButton() == event.BUTTON3) {
+        if (SwingUtilities.isRightMouseButton(event)) {
             rightClick(button);
         } else if (event.getButton() == event.BUTTON1) {
             leftClick(button);
@@ -175,59 +175,7 @@ class MineGrid extends JPanel implements MouseListener{
      @param button Pointer to the button instance
      */
 
-    private void setButtonIcon(int number, JButton button) {
 
-        int bWidth = button.getPreferredSize().width;
-        int bHeight = button.getPreferredSize().height;
-
-        BufferedImage source = (BufferedImage) Glyph.EXPRESSIONS.getGlyph().getImage();
-        int imageWidth = source.getWidth();
-        int imageHeight = source.getHeight();
-        BufferedImage result = new BufferedImage(imageWidth * 1/3, imageHeight,
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = result.createGraphics();
-        g2.drawImage(source.getSubimage((imageWidth / 3) * number, 0,
-                imageWidth / 3, imageHeight), null, 0, 0);
-
-        button.setIcon(new ImageIcon(result.getScaledInstance(bWidth,
-                bHeight, java.awt.Image.SCALE_SMOOTH)));
-    }
-
-    private void updateMineCounterIcon() {
-        updateCounterIcon(minesLeft, leftButton);
-    }
-
-    private void updateTimeCounterIcon(int number) {
-        updateCounterIcon(number, rightButton);
-    }
-
-    private void updateCounterIcon(int number, JButton button) {
-
-        int bWidth = button.getPreferredSize().width;
-        int bHeight = button.getPreferredSize().height;
-
-        BufferedImage source = (BufferedImage) Glyph.NUMBERS.getGlyph().getImage();
-        int imageWidth = source.getWidth();
-        int imageHeight = source.getHeight();
-
-        int first = number / 100;
-        int second = (number % 100) / 10;
-        int third = (number % 10);
-
-        BufferedImage result = new BufferedImage(imageWidth * 3/10, imageHeight,
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = result.createGraphics();
-
-        g2.drawImage(source.getSubimage((imageWidth / 10) * first, 0,
-                imageWidth / 10, imageHeight), null, 0, 0);
-        g2.drawImage(source.getSubimage((imageWidth / 10) * second, 0,imageWidth / 10,
-                imageHeight), null, imageWidth / 10, 0);
-        g2.drawImage(source.getSubimage((imageWidth / 10) * third, 0, imageWidth / 10,
-                imageHeight), null, imageWidth * 2/ 10, 0);
-
-        button.setIcon(new ImageIcon(result.getScaledInstance(bWidth, bHeight,
-                java.awt.Image.SCALE_SMOOTH)));
-    }
 
     private void leftClick(MineTile button) {
 
@@ -240,7 +188,7 @@ class MineGrid extends JPanel implements MouseListener{
                     button.setIcon(Glyph.MINERED.getGlyph());
                     isGameEnded = true;
                     timer.stop();
-                    setButtonIcon(SAD, centralButton);
+                    toolbar.setButtonIcon(SAD);
                     openAllTiles();
                 } else {
 
@@ -254,7 +202,7 @@ class MineGrid extends JPanel implements MouseListener{
                     if (numClosedTiles <= minesNumber) {
                         isGameEnded = true;
                         timer.stop();
-                        setButtonIcon(SMILED, centralButton);
+                        toolbar.setButtonIcon(SMILED);
                         openAllTiles();
                     }
                 }
@@ -269,12 +217,12 @@ class MineGrid extends JPanel implements MouseListener{
             if (button.isFlagged()) {
                 button.unsetFlag();
                 minesLeft++;
-                updateMineCounterIcon();
+                toolbar.updateMineCounterIcon();
             } else {
                 if (minesLeft > 0) {
                     button.setFlag();
                     minesLeft--;
-                    updateMineCounterIcon();
+                    toolbar.updateMineCounterIcon();
                 }
             }
         }
@@ -300,12 +248,17 @@ class MineGrid extends JPanel implements MouseListener{
         private final int CBUTTONWIDTH = 30;
         private final int CBUTTONHEIGHT = 30;
 
+        // Buttons below main menu and above minefield
+        private JButton leftButton;
+        private JButton rightButton;
+        private JButton centralButton;
+
         public ToolBar() {
 
             createButtons();
 
             updateMineCounterIcon();
-            setButtonIcon(NEUTRAL, centralButton);
+            setButtonIcon(NEUTRAL);
             updateTimeCounterIcon(timeElapsed);
 
             setBorder(BorderFactory.createCompoundBorder(
@@ -362,6 +315,62 @@ class MineGrid extends JPanel implements MouseListener{
                     }
                 }
             });
+        }
+
+        public void updateMineCounterIcon() {
+            updateCounterIcon(minesLeft, leftButton);
+        }
+
+        public void updateTimeCounterIcon(int number) {
+            updateCounterIcon(number, rightButton);
+        }
+
+        public void setButtonIcon(int number) {
+
+            JButton button = centralButton;
+
+            int bWidth = button.getPreferredSize().width;
+            int bHeight = button.getPreferredSize().height;
+
+            BufferedImage source = (BufferedImage) Glyph.EXPRESSIONS.getGlyph().getImage();
+            int imageWidth = source.getWidth();
+            int imageHeight = source.getHeight();
+            BufferedImage result = new BufferedImage(imageWidth * 1/3, imageHeight,
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = result.createGraphics();
+            g2.drawImage(source.getSubimage((imageWidth / 3) * number, 0,
+                    imageWidth / 3, imageHeight), null, 0, 0);
+
+            button.setIcon(new ImageIcon(result.getScaledInstance(bWidth,
+                    bHeight, java.awt.Image.SCALE_SMOOTH)));
+        }
+
+        private void updateCounterIcon(int number, JButton button) {
+
+            int bWidth = button.getPreferredSize().width;
+            int bHeight = button.getPreferredSize().height;
+
+            BufferedImage source = (BufferedImage) Glyph.NUMBERS.getGlyph().getImage();
+            int imageWidth = source.getWidth();
+            int imageHeight = source.getHeight();
+
+            int first = number / 100;
+            int second = (number % 100) / 10;
+            int third = (number % 10);
+
+            BufferedImage result = new BufferedImage(imageWidth * 3/10, imageHeight,
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = result.createGraphics();
+
+            g2.drawImage(source.getSubimage((imageWidth / 10) * first, 0,
+                    imageWidth / 10, imageHeight), null, 0, 0);
+            g2.drawImage(source.getSubimage((imageWidth / 10) * second, 0,imageWidth / 10,
+                    imageHeight), null, imageWidth / 10, 0);
+            g2.drawImage(source.getSubimage((imageWidth / 10) * third, 0, imageWidth / 10,
+                    imageHeight), null, imageWidth * 2/ 10, 0);
+
+            button.setIcon(new ImageIcon(result.getScaledInstance(bWidth, bHeight,
+                    java.awt.Image.SCALE_SMOOTH)));
         }
     }
 
