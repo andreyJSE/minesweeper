@@ -20,7 +20,6 @@ public class MinesModel {
 
     public MinesModel(int rowNum, int colNum, int minesNum) {
         minesLayout = MinefieldGenerator.initMinefield(rowNum, colNum, minesNum);
-        String.format("test", )
     }
 
     /**
